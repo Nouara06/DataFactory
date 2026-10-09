@@ -1,0 +1,28 @@
+{
+	"name": "PQ_Data",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "DS_SQL_DATA_ECOGAZ",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DS_SQL_DATA_ECOGAZ",
+					"dataset": {
+						"referenceName": "DS_SQL_DATA_ECOGAZ",
+						"type": "DatasetReference"
+					}
+				},
+				{
+					"name": "DS_ADLS_CSV_ECOGAZ",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> DS_ADLS_CSV_ECOGAZ",
+					"dataset": {
+						"referenceName": "DS_ADLS_CSV_ECOGAZ",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared DS_SQL_DATA_ECOGAZ = let AdfDoc = Sql.Database(\"sql-formation-server.database.windows.net\", \"db-formation-tp-nouara\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"conso\"]}[Data] in InputTable;\r\nshared DS_ADLS_CSV_ECOGAZ = let AdfDoc = AzureStorage.DataLakeContents(\"https://saformationtpnouara.dfs.core.windows.net/input/Ecogaz/part-enr-intensite-ges-conso-tr.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \";\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]) in  PromotedHeaders;\r\nshared UserQuery = let Source = #\"DS_ADLS_CSV_ECOGAZ\" in Source;\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}

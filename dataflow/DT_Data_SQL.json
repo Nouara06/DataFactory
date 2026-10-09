@@ -1,0 +1,81 @@
+{
+	"name": "DT_Data_SQL",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_SQL_DATA_ECOGAZ",
+						"type": "DatasetReference"
+					},
+					"name": "Conso"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "LS_SQL_CopyDataTP",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "CastColumn"
+				},
+				{
+					"name": "TransformColumn"
+				},
+				{
+					"name": "Aggregate"
+				},
+				{
+					"name": "Modification"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Date as date,",
+				"          Heure as string,",
+				"          {Date heure} as string,",
+				"          {Intensité GES de la consommation (gCO₂eq/kWh)} as integer,",
+				"          {Part des EnR dans la consommation (%)} as integer,",
+				"          Source as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     partitionBy('key',",
+				"          0,",
+				"          Date",
+				"     )) ~> Conso",
+				"Conso cast(output(",
+				"          {Date heure} as timestamp 'yyyy-MM-dd\\'T\\'HH:mm:ss'",
+				"     ),",
+				"     errors: true) ~> CastColumn",
+				"CastColumn derive(Source = initCap(Source)) ~> TransformColumn",
+				"TransformColumn aggregate(groupBy(Source),",
+				"     CountLignes = count(Source)) ~> Aggregate",
+				"Aggregate alterRow(upsertIf(true())) ~> Modification",
+				"Modification sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'Agg_source',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: true,",
+				"     keys:['Source'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

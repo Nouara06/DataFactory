@@ -1,0 +1,82 @@
+{
+	"name": "DF_Clean_Ecogaz",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Source_CopyDataTP",
+						"type": "DatasetReference"
+					},
+					"name": "Ecogaz"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "LS_SQL_CopyDataTP",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "weekend"
+				},
+				{
+					"name": "FilterCouleur"
+				},
+				{
+					"name": "aggregate1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {Journée gazière} as date,",
+				"          {Couleur du signal (ENG)} as string,",
+				"          {Couleur du signal (FR)} as string,",
+				"          {Indice de couleur} as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Ecogaz",
+				"Ecogaz select(mapColumn(",
+				"          Date_Signal = {Journée gazière},",
+				"          {Couleur du signal (ENG)},",
+				"          {Couleur du signal (FR)},",
+				"          Niveau = {Indice de couleur}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 derive({Libelle_Couleur } = iif(Niveau==1, 'Vert', iif(Niveau==2, 'Orange', 'Rouge')),",
+				"          Day = dayOfWeek(Date_Signal)) ~> derivedColumn1",
+				"derivedColumn1 derive({ Est_WeekEnd} = dayOfWeek(toDate(Day)) == 1 || dayOfWeek(toDate(Day)) == 7) ~> weekend",
+				"weekend filter(equals({Libelle_Couleur },\"Vert\")) ~> FilterCouleur",
+				"FilterCouleur aggregate(groupBy({Libelle_Couleur }),",
+				"     Nombre_Alertes = count()) ~> aggregate1",
+				"aggregate1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'Stats_Ecogaz_Alertes',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     recreate: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink"
+			]
+		}
+	}
+}
