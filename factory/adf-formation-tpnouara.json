@@ -1,0 +1,25 @@
+{
+	"name": "adf-formation-tpnouara",
+	"properties": {
+		"globalParameters": {
+			"ODRE_API_URL": {
+				"type": "string",
+				"value": "https://odre.opendatasoft.com/api/explore/v2.1"
+			},
+			"ENV": {
+				"type": "string",
+				"value": "DEV"
+			}
+		},
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "61727f15-ad5d-4586-8a1e-4de2c38e4754",
+		"tenantId": "203c3afc-2874-4915-9563-d6699011d346"
+	}
+}

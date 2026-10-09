@@ -1,0 +1,45 @@
+{
+	"name": "DS_SQL_DATA_ECOGAZ",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQL_CopyDataTP",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ECOGAZ"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Date",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Heure",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Date heure",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Intensité GES de la consommation (gCO₂eq/kWh)",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Part des EnR dans la consommation (%)",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Source",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "conso"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

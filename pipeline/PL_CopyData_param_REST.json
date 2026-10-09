@@ -1,0 +1,131 @@
+{
+	"name": "PL_CopyData_param_REST",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cp_Data_REST",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "ADD Item to array",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Warning",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "LS_ADLS_CopyDataTP",
+								"type": "LinkedServiceReference"
+							}
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_REST_ODRE_API",
+						"type": "DatasetReference",
+						"parameters": {
+							"DS_Base_URL": {
+								"value": "@pipeline().globalParameters.ODRE_API_URL",
+								"type": "Expression"
+							},
+							"DS_Path": {
+								"value": "@first(variables('VAR_PATH2'))",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_ADLS_Output_CopyDataTP_API",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Set API PATH",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Var_PATH",
+					"value": "/api/explore/v2.1/catalog/datasets/part-enr-intensite-ges-conso-tr/records?limit=20"
+				}
+			},
+			{
+				"name": "ADD Item to array",
+				"description": "",
+				"type": "AppendVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "VAR_PATH2",
+					"value": "/api/explore/v2.1/catalog/datasets/part-enr-intensite-ges-conso-tr/records?limit=20"
+				}
+			}
+		],
+		"parameters": {
+			"SourceFile": {
+				"type": "string",
+				"defaultValue": "gaz.csv"
+			}
+		},
+		"variables": {
+			"Var_PATH": {
+				"type": "String"
+			},
+			"VAR_PATH2": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "COPYDATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-10-09T07:46:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
