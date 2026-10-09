@@ -1,0 +1,36 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-formation-tpnouara"
+		},
+		"LS_ADLS_CopyDataTP_accountKey": {
+			"value": ""
+		},
+		"LS_ADLS_Storage_accountKey": {
+			"value": ""
+		},
+		"LS_SQL_CopyDataTP_password": {
+			"value": ""
+		},
+		"LS_ADLS_CopyDataTP_properties_typeProperties_url": {
+			"value": "https://saformationtpnouara.dfs.core.windows.net/"
+		},
+		"LS_ADLS_Storage_properties_typeProperties_url": {
+			"value": "https://saformationtpnouara.dfs.core.windows.net/"
+		},
+		"LS_REST_ODRE_properties_typeProperties_url": {
+			"value": "@{linkedService().LS_base_URL}"
+		},
+		"LS_SQL_CopyDataTP_properties_typeProperties_server": {
+			"value": "sql-formation-server.database.windows.net"
+		},
+		"LS_SQL_CopyDataTP_properties_typeProperties_database": {
+			"value": "db-formation-tp-nouara"
+		},
+		"LS_SQL_CopyDataTP_properties_typeProperties_userName": {
+			"value": "db-nouara"
+		}
+	}
+}

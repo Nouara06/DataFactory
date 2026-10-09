@@ -1,0 +1,10 @@
+{
+	"ODRE_API_URL": {
+		"type": "string",
+		"value": "https://odre.opendatasoft.com/api/explore/v2.1"
+	},
+	"ENV": {
+		"type": "string",
+		"value": "DEV"
+	}
+}
