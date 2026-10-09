@@ -1,0 +1,486 @@
+{
+	"name": "PL_Json_Parquet_CSV",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get ECOGAZ Files",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_ADLS_Ecogaz_Binary",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems",
+						"itemName",
+						"exists",
+						"itemType"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "FE_Files_Iteration",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get ECOGAZ Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get ECOGAZ Files').output.childItems",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "SW_Check_Files",
+							"type": "Switch",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"on": {
+									"value": "@split(item().name,'.')[1]",
+									"type": "Expression"
+								},
+								"cases": [
+									{
+										"value": "csv",
+										"activities": [
+											{
+												"name": "CP_CSV",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"additionalColumns": [
+															{
+																"name": "Source",
+																"value": "CSV"
+															}
+														],
+														"storeSettings": {
+															"type": "AzureBlobFSReadSettings",
+															"recursive": true,
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"writeBehavior": "insert",
+														"sqlWriterUseTableLock": false,
+														"tableOption": "autoCreate",
+														"disableMetricsCollection": false
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"mappings": [
+															{
+																"source": {
+																	"name": "Date",
+																	"type": "String",
+																	"physicalType": "String"
+																},
+																"sink": {
+																	"name": "Date",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "Heure",
+																	"type": "String",
+																	"physicalType": "String"
+																},
+																"sink": {
+																	"name": "Heure",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "Date heure",
+																	"type": "String",
+																	"physicalType": "String"
+																},
+																"sink": {
+																	"name": "Date heure",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "Intensité GES de la consommation (gCO₂eq/kWh)",
+																	"type": "String",
+																	"physicalType": "String"
+																},
+																"sink": {
+																	"name": "Intensité GES de la consommation (gCO₂eq/kWh)",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "Part des EnR dans la consommation (%)",
+																	"type": "String",
+																	"physicalType": "String"
+																},
+																"sink": {
+																	"name": "Part des EnR dans la consommation (%)",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "Source",
+																	"type": "String"
+																},
+																"sink": {
+																	"name": "Source",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															}
+														],
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "DS_ADLS_CSV_ECOGAZ",
+														"type": "DatasetReference",
+														"parameters": {
+															"DS_Filename": {
+																"value": "@item().name",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_SQL_DATA_ECOGAZ",
+														"type": "DatasetReference"
+													}
+												]
+											}
+										]
+									},
+									{
+										"value": "json",
+										"activities": [
+											{
+												"name": "CP_JSON",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "JsonSource",
+														"additionalColumns": [
+															{
+																"name": "Source",
+																"value": "JSON"
+															}
+														],
+														"storeSettings": {
+															"type": "AzureBlobFSReadSettings",
+															"recursive": true,
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "JsonReadSettings"
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"writeBehavior": "insert",
+														"sqlWriterUseTableLock": false,
+														"disableMetricsCollection": false
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"mappings": [
+															{
+																"source": {
+																	"path": "$['date_cet']"
+																},
+																"sink": {
+																	"name": "Date",
+																	"type": "String"
+																}
+															},
+															{
+																"source": {
+																	"path": "$['heure_cet']"
+																},
+																"sink": {
+																	"name": "Heure",
+																	"type": "String"
+																}
+															},
+															{
+																"source": {
+																	"path": "$['date_heure_utc']"
+																},
+																"sink": {
+																	"name": "Date heure",
+																	"type": "String"
+																}
+															},
+															{
+																"source": {
+																	"path": "$['intensite_emissions_conso']"
+																},
+																"sink": {
+																	"name": "Intensité GES de la consommation (gCO₂eq/kWh)",
+																	"type": "String"
+																}
+															},
+															{
+																"source": {
+																	"path": "$['part_enr_conso']"
+																},
+																"sink": {
+																	"name": "Part des EnR dans la consommation (%)",
+																	"type": "String"
+																}
+															},
+															{
+																"source": {
+																	"path": "$['Source']"
+																},
+																"sink": {
+																	"name": "Source",
+																	"type": "String"
+																}
+															}
+														]
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "DS_ADLS_JSON_ECOGAZ",
+														"type": "DatasetReference",
+														"parameters": {
+															"DS_Filename": {
+																"value": "@item().name",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_SQL_DATA_ECOGAZ",
+														"type": "DatasetReference"
+													}
+												]
+											}
+										]
+									},
+									{
+										"value": "parquet",
+										"activities": [
+											{
+												"name": "CP_PARQUET",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "ParquetSource",
+														"additionalColumns": [
+															{
+																"name": "Source",
+																"value": "PARQUET"
+															}
+														],
+														"storeSettings": {
+															"type": "AzureBlobFSReadSettings",
+															"recursive": true,
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "ParquetReadSettings"
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"writeBehavior": "insert",
+														"sqlWriterUseTableLock": false,
+														"disableMetricsCollection": false
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"mappings": [
+															{
+																"source": {
+																	"name": "date_cet",
+																	"type": "DateTime",
+																	"physicalType": "DATE"
+																},
+																"sink": {
+																	"name": "Date",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "heure_cet",
+																	"type": "String",
+																	"physicalType": "UTF8"
+																},
+																"sink": {
+																	"name": "Heure",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "date_heure_utc",
+																	"type": "DateTime",
+																	"physicalType": "TIMESTAMP_MILLIS"
+																},
+																"sink": {
+																	"name": "Date heure",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "intensite_emissions_conso",
+																	"type": "Int64",
+																	"physicalType": "INT64"
+																},
+																"sink": {
+																	"name": "Intensité GES de la consommation (gCO₂eq/kWh)",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "part_enr_conso",
+																	"type": "Int64",
+																	"physicalType": "INT64"
+																},
+																"sink": {
+																	"name": "Part des EnR dans la consommation (%)",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"name": "Source",
+																	"type": "String"
+																},
+																"sink": {
+																	"name": "Source",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															}
+														],
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "DS_ADLS_Parquet_ECOGAZ",
+														"type": "DatasetReference",
+														"parameters": {
+															"DS_Filename": {
+																"value": "@item().name",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_SQL_DATA_ECOGAZ",
+														"type": "DatasetReference"
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-10-09T09:12:27Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

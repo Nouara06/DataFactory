@@ -1,0 +1,22 @@
+{
+	"name": "DS_ADLS_Source_Binary_CopyDataTP",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_CopyDataTP",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Copydata"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "TP1",
+				"fileSystem": "input"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
